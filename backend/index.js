@@ -139,26 +139,55 @@ app.use("/stripe", express.raw({ type: "*/*" }));
 app.use(express.json());
 app.use(cors());
 
-app.post("/pay", async (req, res) => {
-  try {
-    // const { name } = req.body;
-    // if (!name) return res.status(400).json({ message: "Please enter a name" });
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(25 * 100),
-      currency: "INR",
-      payment_method_types: ["card"],
-      metadata: { name: 'amit' },
-    });
-    
-    const clientSecret = paymentIntent.client_secret;
-    res.json({ message: "Payment initiated", clientSecret });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Internal server error" });
-  }
+const calculateOrderAmount = (items) => {
+  // Replace this constant with a calculation of the order's amount
+  // Calculate the order total on the server to prevent
+  // people from directly manipulating the amount on the client
+  return 1400;
+};
+
+app.post("/payment-sheet", async (req, res) => {
+  const { items } = req.body;
+
+  // Create a PaymentIntent with the order amount and currency
+  const paymentIntent = await stripe.paymentIntents.create({
+    amount: calculateOrderAmount(items),
+    currency: "INR",
+    automatic_payment_methods: {
+      enabled: true,
+    },
+  });
+
+  res.send({
+    clientSecret: paymentIntent.client_secret,
+  });
 });
 
-app.post('/webhook', express.raw({type: 'application/json'}), (request, response) => {
+// app.post('/payment-sheet', async (req, res) => {
+//   // Use an existing Customer ID if this is a returning customer.
+//   // const customer = await stripe.customers.create();
+//   // const ephemeralKey = await stripe.ephemeralKeys.create(
+//   //   { customer: customer.id },
+//   //   { apiVersion: '2020-08-27' }
+//   // );
+//   try {
+//     const paymentIntent = await stripe.paymentIntents.create({
+//       amount: 10,
+//       currency: "INR",
+//       payment_method_types: ["card"],
+//       metadata: { name: 'amit' },
+//     });
+
+//     res.json({
+//       clientSecret: paymentIntent.client_secret,
+//     });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ message: "Internal server error" });
+//   }
+// });
+
+app.post('/webhook', express.raw({ type: 'application/json' }), (request, response) => {
   let event = request.body;
   // Only verify the event if you have an endpoint secret defined.
   // Otherwise use the basic event deserialized with JSON.parse

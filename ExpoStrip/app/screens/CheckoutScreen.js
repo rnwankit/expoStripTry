@@ -9,7 +9,7 @@ export default function CheckoutScreen() {
   const [secKey, setSecKey] = useState('')
 
   const fetchPaymentSheetParams = async () => {
-    const response = await fetch(`http://192.168.2.92:8080/pay`, {
+    const response = await fetch(`http://192.168.2.92:8080/payment-sheet`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
