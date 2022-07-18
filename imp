@@ -1,0 +1,8 @@
+cd backend
+    npm init -y
+
+    npm i express strip
+
+    https://stripe.com/docs/payments/quickstart
+
+    
